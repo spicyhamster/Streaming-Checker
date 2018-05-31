@@ -1,0 +1,896 @@
+Guidebox API Documentation
+
+https://api.guidebox.com/docs
+
+Guidebox
+DISCOVERY API DATA DEMO
+REGISTER LOG IN
+API KEY  API DOCS CONTACT US
+
+Guidebox API Documentation
+Version 2.0
+Note: If you're currently using Version 1.43, please view our Upgrade Guide. The legacy documentation may be found here.
+We have no plans to deprecate v1.43, but we highly recommend that you upgrade to v2 for ease of use, and so that you can take advantage of our new client libraries.
+
+Upgrade Guide How to use Sources How to Cache / Store Data Client Libraries / SDKs
+Introduction Making a Request Authentication Setting a Region API Limits Quotas Shows Episodes Channels Genres Regions Tags Movies Sources Persons Search Updates
+API Documentation
+Examples
+cURLPHPPythonRubyNode
+Introduction
+Welcome to the Guidebox API! Our API is organized around REST principles, with predictable, resource-oriented URIs, and uses sensible HTTP codes to indicate API errors. We use HTTP verbs and HTTP authentication, which every HTTP client should understand. We also support cross-origin resource sharing, allowing you to securely interact with Guidebox from your web applications.
+
+Our API returns JSON for all responses, including errors.
+
+Base API URL
+From this base URL, you will structure your API calls.
+
+Our API is available in JSON. The base URL is structured like this:
+
+We highly recommend that you use our API Client Libraries for your chosen language, if one is available.
+
+GET http://api-public.guidebox.com/v2/{endpoint}
+Authentication
+Each user is given an API key. In order to make a request to the Guidebox API, simply append the API key to the end of your request.
+
+Alternately, you may pass in the API Key as an Authorization header.
+
+$ curl http://api-public.guidebox.com/v2/genres?api_key=YOUR_API_KEY?api_key={YOUR API KEY}
+As a Header
+
+Authorization: YOUR_API_KEY
+Setting a Region
+By default, all API calls will be processed in the US region.
+
+
+Using Other Regions
+If you would like to use another region, you may pass it in as a query parameter or as a header
+
+For a list of acceptable regions, please see the Regions endpoint.
+
+As a query parameter:
+
+GET /v2/{endpoint}?region=JP
+As a header:
+
+Guidebox-Region: JP
+Using our Client Libraries
+
+$ curl http://api-public.guidebox.com/v2/genres?api_key=YOUR_API_KEY?api_key={YOUR API KEY}&region=JP
+API Limits
+Rate limits are in effect for all users. All users may make up to 240 API requests per minute. For each request, additional response headers are passed to let you know where you stand:
+
+Number of requests per minute
+
+X-RateLimit-Limit: 240
+As you hit the API, you will see the X-RateLimit-Remaining number decrease until it hits 0. You will receive an error when you run out of API calls for the current time window. When you hit that error, you will receive an additional header:
+
+Number of requests remaining for this minute window
+
+X-RateLimit-Remaining: 135
+After the Retry-After header reachers 0, the minute window will reset and the X-RateLimit-Remaining header will reset as well, allowing you to once again successfully access the API.
+
+Returns seconds remaining until next allowed request
+
+Retry-After: 36
+Quotas
+Each API key is allowed to make a limited number of requests per month. If you need to make more requests, please contact Guidebox.
+
+Headers
+Each API response will return a header that contains your max requests per billing period, as well as the progress toward that quota.
+
+Header
+Guidebox-Quota:3995
+Guidebox-Quota-Max:150000
+API Endpoint
+Alternately, you may use our API Endpoint to retrieve your current quota details.
+
+API Endpoint
+GET /v2/quota
+Example Request
+$ curl http://api-public.guidebox.com/v2/quota?api_key=YOUR_API_KEY
+Shows
+A TV show is one of the core entities of Guidebox data. It represents the TV show or series element, with a title, description, rating, and much more.
+
+Below is a list of endpoints through which you can retrieve the myriad data points available about a particular show.
+
+
+List all Shows
+This endpoint retrieves all currently active shows from Guidebox. The results are ordered by popularity. You may get additional information about each show using its show ID. More on that below.
+
+The following filters are available:
+
+channeloptional
+Filter shows by a particular channel using the short_name field from the Channels section below.
+
+offsetoptional, default: 0
+Skips this number of records. Useful for pagination.
+
+limitoptional, default: 25
+Number of records to return per request.
+
+sourcesoptional
+Filter shows by source. Valid options include:
+
+free
+tv_everywhere
+subscription
+purchase
+A specific source, such as amazon_prime or hbo
+Multiple sources may be comma-separated.
+
+Note: this does not filter clips
+
+platformoptional
+Filter by platform. Valid options include:
+
+ios
+android
+web
+tagsoptional
+Filter show by tags. You may retrieve a list of tags from the Tags endpoint.
+
+Base URL
+GET /v2/shows
+Example Request
+$ curl http://api-public.guidebox.com/v2/shows?api_key=YOUR_API_KEY
+Select shows from a specific channel:
+
+GET /v2/shows?channel=hbo
+Example Request
+shows = guidebox.shows.list
+Select the first twelve results:
+
+GET /v2/shows?limit=12
+Example Request
+$ curl http://api-public.guidebox.com/v2/shows?api_key=YOUR_API_KEY&limit=12
+Select the next page of 12 results:
+
+GET /v2/shows?limit=12&offset=12
+Example Request
+$ curl http://api-public.guidebox.com/v2/shows?api_key=YOUR_API_KEY&limit=12&offset=12
+Select free shows:
+
+GET /v2/shows?sources=free
+Example Request
+$ curl http://api-public.guidebox.com/v2/shows?api_key=YOUR_API_KEY&sources=free
+Select free and subscription shows
+
+GET /v2/shows?sources=free,subscription
+Example Request
+$ curl http://api-public.guidebox.com/v2/shows?api_key=YOUR_API_KEY&sources=free,subscription
+Select subscription shows from subscription sources AND Amazon Prime:
+
+GET /v2/shows?sources=subscription,amazon_prime
+Example Request
+$ curl http://api-public.guidebox.com/v2/shows?api_key=YOUR_API_KEY&sources=subscription,amazon_prime
+Select only shows available on iOS:
+
+GET /v2/shows?platform=ios
+Example Request
+$ curl http://api-public.guidebox.com/v2/shows?api_key=YOUR_API_KEY&platform=ios
+Select shows filtered by tag:
+
+GET /v2/shows?tags=comedy
+Example Request
+shows = guidebox.Show.list(sources='subscription,amazon_prime')
+Retrieve a single show
+This endpoint retrieves the details for a single show.
+
+GET /v2/shows/{id}
+Example Request
+$ curl http://api-public.guidebox.com/v2/shows/6959?api_key=YOUR_API_KEY
+Retrieve all seasons for a single show
+This endpoint retrieves a list of the seasons for a single show.
+
+GET /v2/shows/{id}/seasons
+Example Request
+$ curl http://api-public.guidebox.com/v2/shows/6959/seasons?api_key=YOUR_API_KEY
+Retrieve all images for a single show
+This endpoint retrieves a list of the images for a single show.
+
+You may also filter by image size:
+
+thumbnails
+posters
+banners
+backgrounds
+GET /v2/shows/{id}/images
+Example Request
+$ curl http://api-public.guidebox.com/v2/shows/6959/images?api_key=YOUR_API_KEY
+Fetch only thumbnails
+
+GET /v2/shows/{id}/images?filter=thumbnails
+Example Request
+$ curl http://api-public.guidebox.com/v2/shows/6959/images?api_key=YOUR_API_KEY&filter=thumbnails
+Retrieve all related shows for a single show
+This endpoint retrieves a list of the related shows for a single show.
+
+GET /v2/shows/{id}/related
+Example Request
+$ curl http://api-public.guidebox.com/v2/shows/6959/related?api_key=YOUR_API_KEY
+Retrieve all available content for a single show
+This endpoint retrieves the available content for a single show.
+
+GET /v2/shows/{id}/available_content
+Example Request
+images = guidebox.Show.images(id=6959, filter='thumbnails')
+Episodes, Clips, and Segments
+
+What are "Episodes"?
+Episodes are full length videos associated with a particular show. Episodes are grouped into seasons and ordered by episode number.
+
+What are "Clips"?
+Clips (a.k.a. "Videos" or "Extras") are uncategorized videos associated with a particular show. Clips can be small snippets of an episode, behind the scene footage, or in some cases (as with YouTube and other online original shows) can be a self-contained piece of content which hasn't been assigned any episode level metadata.
+
+What are "Segments"?
+Segments are best explained using a cartoon as an example. Sometimes an episode of a cartoon is actually comprised of two or more complete cartoons with separate titles and storylines. These separate cartoons in the Guidebox ecosystem, when released individually on a playback source, are called episode segments. We treat episode segments differently then episodes or clips because episode segments are self-contained pieces of content (i.e. not a brief snippet or clip) and aren't a full episode because the full episode in the original broadcast (or release) of the cartoon included two or more other episode segments.
+
+
+
+List all episodes
+Required: show_id - the ID for a specific show. See Shows for more information.
+
+The following filters are available:
+
+seasonoptional
+A particular season for a show.
+
+offsetoptional, default: 0
+Skips this number of records. Useful for pagination.
+
+limitoptional, default: 25
+Number of records to return per request.
+
+sourcesoptional
+Filter shows by source. Valid options include:
+
+free
+tv_everywhere
+subscription
+purchase
+A specific source, such as amazon_prime or hbo
+Multiple sources may be comma-separated.
+
+platformoptional
+Filter by platform. Valid options include:
+
+ios
+android
+web
+include_linksoptional
+Provide a value of true if you would like to return streaming or purchase links.
+
+reverse_orderingoptional
+Returns the episodes in descending order of release date. Used to show most recent episodes.
+
+Select all episodes:
+
+GET /v2/shows/{show_id}/episodes
+Example Request
+$ curl http://api-public.guidebox.com/v2/shows/6959/episodes?api_key=YOUR_API_KEY
+
+Select only episodes from a single season:
+
+GET /v2/shows/{show_id}/episodes?season=1
+Example Request
+$ curl http://api-public.guidebox.com/v2/shows/6959/episodes?api_key=YOUR_API_KEY&season=1
+Select only subscription episodes:
+
+GET /v2/shows/{show_id}/episodes?sources=subscription
+Example Request
+$ curl http://api-public.guidebox.com/v2/shows/6959/episodes?api_key=YOUR_API_KEY&sources=subscription
+Select only subscription episodes from Amazon Prime:
+
+GET /v2/shows/{show_id}/episodes?sources=subscription,amazon_prime
+Example Request
+$episodes = $client->shows()->episodes(6959, [
+    'sources' => 'subscription'
+]);
+Select only iOS episodes:
+
+GET /v2/shows/{show_id}/episodes?platform=ios
+Example Request
+$ curl http://api-public.guidebox.com/v2/shows/6959/episodes?api_key=YOUR_API_KEY&platform=ios
+Return streaming and purchase links:
+
+GET /v2/shows/{show_id}/episodes?include_links=true
+Example Request
+episodes = guidebox.Show.episodes(id=6959, platform='ios')
+Return episodes in reverse order:
+
+GET /v2/shows/{show_id}/episodes?reverse_ordering=true
+Example Request
+$ curl http://api-public.guidebox.com/v2/shows/6959/episodes?api_key=YOUR_API_KEY&reverse_ordering=true
+Clips
+List all clips for a given show.
+
+Required: show_id - the ID for a specific show. See Shows for more information.
+
+GET /v2/shows/{show_id}/clips
+Example Request
+$episodes = $client->shows()->episodes(6959, [
+    'reverse_ordering' => 'true'
+]);
+The clips endpoint is identical to the episodes endpoint, with the exception of one extra filter.
+
+min_durationoptional
+The minimum duration allowed, in seconds
+
+Select only clips with a duration greater than 60 seconds:
+
+GET /v2/shows/{show_id}/clips?min_duration=60
+Example Request
+$ curl http://api-public.guidebox.com/v2/shows/6959/clips?api_key=YOUR_API_KEY&min_duration=60
+Segments
+List all segments for a given show. The segments endpoint is identical to the episodes endpoint.
+
+Required: show_id - the ID for a specific show. See Shows for more information.
+
+GET /v2/shows/{show_id}/segments
+Example Request
+$ curl http://api-public.guidebox.com/v2/shows/6959/segments?api_key=YOUR_API_KEY
+Episode Details
+Returns the details of an episode.
+
+Required: episode_id - the ID for a specific episode. See above for more information.
+
+GET /v2/episodes/{episode_id}
+Example Request
+$ curl http://api-public.guidebox.com/v2/episodes/100315?api_key=YOUR_API_KEY
+Episode Images
+Returns the images for a given episode.
+
+Required: episode_id - the ID for a specific episode. See above for more information.
+
+GET /v2/episodes/{episode_id}/images
+Example Request
+$ curl http://api-public.guidebox.com/v2/episodes/100315/images?api_key=YOUR_API_KEY
+Clip Details
+Returns the details of a clip.
+
+Required: clip_id - the ID for a specific clip. See above for more information.
+
+GET /v2/clips/{clip_id}
+Example Request
+$ curl http://api-public.guidebox.com/v2/clips/1072767?api_key=YOUR_API_KEY
+Clip Images
+Returns the images for a given clip.
+
+Required: clip_id - the ID for a specific clip. See above for more information.
+
+GET /v2/clips/{clip_id}/images
+Example Request
+clip = guidebox.Clip.retrieve(id=1072767)
+Segment Details
+Returns the details of a segment.
+
+Required: segment_id - the ID for a specific segment. See above for more information.
+
+GET /v2/segments/{segment_id}
+Example Request
+$ curl http://api-public.guidebox.com/v2/segments/57954?api_key=YOUR_API_KEY
+Segment Images
+Returns the images for a given segment.
+
+Required: segment_id - the ID for a specific segment. See above for more information.
+
+GET /v2/segments/{segment_id}/images
+Example Request
+$ curl http://api-public.guidebox.com/v2/segments/57954/images?api_key=YOUR_API_KEY
+Channels
+All of the shows in the Guidebox API are associated with one or more channels.
+
+
+Get All Channels
+Fetches a list of all channels. You may use the following arguments to filter:
+
+typeoptional
+Valid options include:
+
+online
+television
+offsetoptional, default: 0
+Skips this number of records. Useful for pagination.
+
+limitoptional, default: 25
+Number of records to return per request.
+
+Select all Channels
+
+GET /v2/channels
+Example Request
+$ curl http://api-public.guidebox.com/v2/channels?api_key=YOUR_API_KEY
+Get Channel by ID
+Returns the details of a single channel.
+
+Example
+
+GET /v2/channels/{id}
+Example Request
+$ curl http://api-public.guidebox.com/v2/channels/1?api_key=YOUR_API_KEY
+Get Channel Images
+Returns the images from a single channel.
+
+Example
+
+GET /v2/channels/{id}/images
+Example Request
+$ curl http://api-public.guidebox.com/v2/channels/1/images?api_key=YOUR_API_KEY
+Genres
+Genres are broad categorizations like "comedy" or "drama".
+
+
+Get all Genres
+Return a list of all genres
+
+Example
+
+GET /v2/genres
+Example Request
+var channels = Guidebox.channels.images(1);
+Regions
+Streaming titles are often geo-restricted by region.
+
+
+Get all Regions
+Return a list of all regions
+
+Example
+
+GET /v2/regions
+Example Request
+$genres = $client->genres()->all();
+Tags
+Tags are free-form keywords associated with a particular piece of content. Tags are more specific than genres.
+
+
+Get all Tags
+Return a list of all tags. Available arguments include:
+
+offsetoptional, default: 0
+Skips this number of records. Useful for pagination.
+
+limitoptional, default: 25
+Number of records to return per request.
+
+Select all Tags
+
+GET /v2/tags
+Example Request
+regions = guidebox.regions.list
+Select Tags, 10 at a time
+
+GET /v2/tags?limit=10
+Example Request
+$ curl http://api-public.guidebox.com/v2/tags?api_key=YOUR_API_KEY&limit=10
+Movies
+Movies are a core entity in the Guidebox API.
+
+
+Get all Movies
+Returns the basic metadata for all movies for immediate playback. The results are ordered by popularity. You may get additional information about each movie using its movie ID. More on that below.
+
+Available filters include:
+
+offsetoptional, default: 0
+Skips this number of records. Useful for pagination.
+
+limitoptional, default: 25, max: 250
+Number of records to return per request.
+
+sourcesoptional
+Filter shows by source. Valid options include:
+
+free
+tv_everywhere
+subscription
+purchase
+A specific source, such as amazon_prime or hbo
+Multiple sources may be comma-separated.
+
+platformoptional
+Filter by platform. Valid options include:
+
+ios
+android
+web
+include_preordersoptional
+By default, we only include movies which are available for immediate playback. If you want to include movies which are ONLY available for pre-order alongside movies which are immediately playable, set this to true.
+
+include_in_theatersoptional
+By default, we only include movies which are available for immediate playback. If you want to include movies which are ONLY available in theaters alongside movies which are immediately playable, set this to true.
+
+Select all movies:
+
+GET /v2/movies
+Example Request
+$tags = $client->tags()->all([
+    'limit' => 10
+]);
+Select first 10 movies:
+
+GET /v2/movies?limit=10
+Example Request
+movies = guidebox.movies.list
+Select free movies:
+
+GET /v2/movies?sources=free
+Example Request
+$ curl http://api-public.guidebox.com/v2/movies?api_key=YOUR_API_KEY&sources=free
+Select free movies on Amazon Prime:
+
+GET /v2/movies?sources=free,amazon_prime
+Example Request
+$ curl http://api-public.guidebox.com/v2/movies?api_key=YOUR_API_KEY&sources=free,amazon_prime
+Select movies available on iOS:
+
+GET /v2/movies?platform=ios
+Example Request
+$ curl http://api-public.guidebox.com/v2/movies?api_key=YOUR_API_KEY&platform=ios
+Get Specific Movie
+Return the metadata associated with the specified movie.
+
+Required - movie_id - the ID associated with a movie
+
+Select all Related Movies
+
+GET /v2/movies/{movie_id}
+Example Request
+$ curl http://api-public.guidebox.com/v2/movies/135934?api_key=YOUR_API_KEY
+Get Movie Images
+Return a list of images for the specified movie.
+
+Required - movie_id - the ID associated with a movie
+
+Optional - filter - valid options include: thumbnails, posters, banners, backgrounds
+
+Select all Images
+
+GET /v2/movies/{movie_id}/images
+Example Request
+$ curl http://api-public.guidebox.com/v2/movies/135934/images?api_key=YOUR_API_KEY
+Select all Images that are posters
+
+GET /v2/movies/{movie_id}/images?filter=posters
+Example Request
+$ curl http://api-public.guidebox.com/v2/movies/135934/images?api_key=YOUR_API_KEY&filter=posters
+Get Related Movies
+Return a list of movies related to the specified movie.
+
+Required - movie_id - the ID associated with a movie
+
+Select all Related Movies
+
+GET /v2/movies/{movie_id}/related
+Example Request
+$ curl http://api-public.guidebox.com/v2/movies/135934/related?api_key=YOUR_API_KEY
+Get Movie Trailers
+Return a list of trailers related to the specified movie.
+
+Required - movie_id - the ID associated with a movie
+
+Available filters include:
+
+offsetoptional, default: 0
+Skips this number of records. Useful for pagination.
+
+limitoptional, default: 25
+Number of records to return per request.
+
+sourcesoptional
+Filter shows by source. Valid options include:
+
+youtube
+guidebox
+Select all Trailers
+
+GET /v2/movies/{movie_id}/videos
+Example Request
+$ curl http://api-public.guidebox.com/v2/movies/135934/videos?api_key=YOUR_API_KEY
+Select first 10 Trailers
+
+GET /v2/movies/{movie_id}/videos?limit=10
+Example Request
+var related = Guidebox.movies.related(135934);
+Select Guidebox trailers
+
+GET /v2/movies/{movie_id}/videos?sources=guidebox
+Example Request
+$ curl http://api-public.guidebox.com/v2/movies/135934/videos?api_key=YOUR_API_KEY&sources=guidebox
+Sources
+A Source is a place where the movie, episode, or clip can be found. For example, a show might be available on Netflix, Hulu, and NBC.com. Each of these three platforms would be a source.
+
+For more information about usage of Sources and restrictions, please visit our Sources page.
+
+
+Get all Sources
+Returns a list of all sources.
+
+typeoptional
+The type of source. Valid options include: free, subscription, purchase, tv_everywhere
+
+filteroptional
+Valid options include: movie, show
+
+Select all Sources
+
+GET /v2/sources
+Example Request
+$ curl http://api-public.guidebox.com/v2/sources?api_key=YOUR_API_KEY
+Select free sources:
+
+GET /v2/sources?type=free
+Example Request
+$ curl http://api-public.guidebox.com/v2/sources?api_key=YOUR_API_KEY&type=free
+Select movie sources
+
+GET /v2/sources?filter=movie
+Example Request
+$ curl http://api-public.guidebox.com/v2/sources?api_key=YOUR_API_KEY&filter=movie
+Select free movie sources
+
+GET /v2/sources?type=free&filter=movie
+Example Request
+$ curl http://api-public.guidebox.com/v2/sources?api_key=YOUR_API_KEY&type=free&filter=movie
+Persons
+A Person is a core entity in the Guidebox API. These make up the cast/crew of a given title.
+
+
+Retrieve a single person
+This endpoint retrieves the details for a single person.
+
+GET /v2/person/{id}
+Example Request
+$ curl http://api-public.guidebox.com/v2/person/212668?api_key=YOUR_API_KEY
+Retrieve all images for a single person
+This endpoint retrieves the images for a single person.
+
+GET /v2/person/{id}/images
+Example Request
+$ curl http://api-public.guidebox.com/v2/person/212668/images?api_key=YOUR_API_KEY
+Retrieve all credits for a single person
+This endpoint retrieves the credits for a single person.
+
+Available parameters include:
+
+rolerequired
+Valid roles include: cast, crew
+
+typeoptional
+Valid types include: movie, show
+
+Select all cast credits
+
+GET /v2/person/{id}/credits?role=cast
+Example Request
+$ curl http://api-public.guidebox.com/v2/person/212668/credits?api_key=YOUR_API_KEY&role=cast
+Select all crew credits
+
+GET /v2/person/{id}/credits?role=crew
+Example Request
+var images = Guidebox.person.images(212668);
+Select all cast credits from movies
+
+GET /v2/person/{id}/credits?role=cast&type=movie
+Example Request
+$ curl http://api-public.guidebox.com/v2/person/212668/credits?api_key=YOUR_API_KEY&role=cast&type=movie
+Search
+The Guidebox API exposes a slick interface to let you search our API for movies, shows, and people!
+
+
+Search
+Returns a list of titles that match the query.
+
+typerequired
+The type of entity. Valid options include: movie, channel, person, show
+
+fieldoptional
+Valid options are different, depending on type:
+
+Shows: title, id
+Movies: title, id
+Channels: not required
+Person: not required
+precisionoptional, default: fuzzy
+How exact the search query should be. Valid options include: exact, fuzzy
+
+id_typeoptional
+Valid options are different, depending on type:
+
+Shows: tvdb, themoviedb, imdb
+Movies: imdb, themoviedb
+Channels: not required
+Person: not required
+Search Movies by Title
+
+GET /v2/search?type=movie&field=title&query=Terminator
+Example Request
+$ curl http://api-public.guidebox.com/v2/search?api_key=YOUR_API_KEY&type=movie&field=title&query=Terminator
+Search Shows by ID:
+
+GET /v2/search?type=movie&field=id&id_type=imdb&query=tt1826940
+Example Request
+$ curl http://api-public.guidebox.com/v2/search?api_key=YOUR_API_KEY&type=movie&field=id&id_type=imdb&query=tt1826940
+Search Person:
+
+GET /v2/search?type=person&query=Harrison+Ford
+Example Request
+$ curl http://api-public.guidebox.com/v2/search?api_key=YOUR_API_KEY&type=person&query=Harrison+Ford
+Search Channel:
+
+GET /v2/search?type=channel&query=ABC
+Example Request
+$ curl http://api-public.guidebox.com/v2/search?api_key=YOUR_API_KEY&type=channel&query=ABC
+Updates
+If you choose to store the Guidebox data locally, we provide the following API calls for keeping your data in sync with Guidebox. These API calls list the updates after a particular UNIX timestamp. For more information on caching and storing Guidebox data, please see the "Caching or Storing Guidebox Data" section above.
+
+Please note: We only provide updates for the previous few weeks. It is recommended that you run the updates at least twice per day to ensure that all your data is in sync.
+
+
+Show Updates
+Returns recently updated shows.
+
+offsetoptional, default: 0
+Skips this number of records. Useful for pagination.
+
+limitoptional, default: 100
+Number of records to return per request.
+
+objectrequired
+For getting show updates, this value should be show
+
+typerequired
+Type of update to retrieve. Valid options include:
+
+new
+changes
+deletes
+new_episodes
+new_clips
+new_segments
+changed_episodes
+timerequired
+Unix timestamp from which to begin the update list
+
+Shows
+Get New Shows
+
+GET /v2/updates?object=show&type=new&time=1527802661
+$ curl http://api-public.guidebox.com/v2/updates?api_key=YOUR_API_KEY
+Get New Episodes for a Show
+
+GET /v2/updates?object=show&type=new_episodes&time=1527802661
+Get Changed Episodes for a Show
+
+GET /v2/updates?object=show&type=changed_episodes&time=1527802661
+Get New Clips for a Show
+
+GET /v2/updates?object=show&type=new_clips&time=1527802661
+Get New Segments for a Show
+
+GET /v2/updates?object=show&type=new_segments&time=1527802661
+Episode Updates
+Returns recently updated episodes.
+
+offsetoptional, default: 0
+Skips this number of records. Useful for pagination.
+
+limitoptional, default: 100
+Number of records to return per request.
+
+objectrequired
+For getting episode updates, this value should be episode
+
+typerequired
+Type of update to retrieve. Valid options include:
+
+new
+changes
+deletes
+timerequired
+Unix timestamp from which to begin the update list
+
+idoptional
+If you want to filter by show ID, you may supply it here.
+
+Episodes
+Get Episode Changes
+
+GET /v2/updates?object=episode&type=changes&time=1527802661&id=6959
+Get New Episodes
+
+GET /v2/updates?object=episode&type=new&time=1527802661&id=6959
+Get Deleted Episodes
+
+GET /v2/updates?object=episode&type=deletes&time=1527802661
+Clips Updates
+Get Clip Changes
+
+offsetoptional, default: 0
+Skips this number of records. Useful for pagination.
+
+limitoptional, default: 100
+Number of records to return per request.
+
+objectrequired
+For getting clip updates, this value should be clip
+
+typerequired
+Type of update to retrieve. Valid options include:
+
+new
+changes
+deletes
+timerequired
+Unix timestamp from which to begin the update list
+
+Clips
+Get Clip Changes
+
+GET /v2/updates?object=clip&type=changes&time=1527802661
+Get New Clips
+
+GET /v2/updates?object=clip&type=new&time=1527802661
+Get Deleted Clips
+
+GET /v2/updates?object=clip&type=deletes&time=1527802661
+Segments Updates
+Get Segment Changes
+
+offsetoptional, default: 0
+Skips this number of records. Useful for pagination.
+
+limitoptional, default: 100
+Number of records to return per request.
+
+objectrequired
+For getting segment updates, this value should be segment
+
+typerequired
+Type of update to retrieve. Valid options include:
+
+new
+changes
+deletes
+timerequired
+Unix timestamp from which to begin the update list
+
+GET /v2/updates?object=segment&type=changes&time=1527802661
+Get New Segments
+
+GET /v2/updates?object=segment&type=new&time=1527802661
+Get Deleted Segments
+
+GET /v2/updates?object=segment&type=deletes&time=1527802661
+Movies Updates
+Get Movie Changes
+
+offsetoptional, default: 0
+Skips this number of records. Useful for pagination.
+
+limitoptional, default: 100
+Number of records to return per request.
+
+objectrequired
+For getting movie updates, this value should be movie
+
+typerequired
+Type of update to retrieve. Valid options include:
+
+new
+changes
+deletes
+timerequired
+Unix timestamp from which to begin the update list
+
+GET /v2/updates?object=movie&type=changes&time=1527802661
+Get New Movies
+
+GET /v2/updates?object=movie&type=new&time=1527802661
+Get Deleted Movies
+
+GET /v2/updates?object=movie&type=deletes&time=1527802661
+Available AppleAndroidDesktop
+Coming soon on tvOS, Roku and FireTV.
+DMCA | Terms of Service | Privacy Policy
